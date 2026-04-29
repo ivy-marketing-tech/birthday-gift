@@ -2,19 +2,27 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#ffb3c6">
 <title>🎂 生日礼物心愿单 · For My Bestie</title>
 <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=ZCOOL+QingKe+HuangYou&family=Long+Cang&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html { -webkit-text-size-adjust: 100%; }
 
   body {
     font-family: 'Noto Sans SC', sans-serif;
     background: linear-gradient(135deg, #ffe5ec 0%, #ffc2d1 50%, #ffb3c6 100%);
     min-height: 100vh;
+    min-height: 100dvh; /* 移动端动态视口高度，避免地址栏遮挡 */
     overflow-x: hidden;
     position: relative;
     padding: 40px 20px;
+    padding: max(40px, env(safe-area-inset-top)) 20px max(40px, env(safe-area-inset-bottom));
+    -webkit-font-smoothing: antialiased;
   }
 
   /* 背景飘浮的爱心 */
@@ -81,6 +89,7 @@
   .gift-card {
     background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border-radius: 24px;
     padding: 32px 24px;
     cursor: pointer;
@@ -89,6 +98,8 @@
     position: relative;
     overflow: hidden;
     text-align: center;
+    -webkit-user-select: none;
+    user-select: none;
   }
 
   .gift-card::before {
@@ -103,14 +114,22 @@
     transition: opacity 0.3s;
   }
 
-  .gift-card:hover {
-    transform: translateY(-8px) scale(1.02);
-    box-shadow: 0 20px 40px rgba(214, 51, 108, 0.25);
-    border-color: #ff8fab;
+  @media (hover: hover) {
+    .gift-card:hover {
+      transform: translateY(-8px) scale(1.02);
+      box-shadow: 0 20px 40px rgba(214, 51, 108, 0.25);
+      border-color: #ff8fab;
+    }
+
+    .gift-card:hover::before {
+      opacity: 1;
+    }
   }
 
-  .gift-card:hover::before {
-    opacity: 1;
+  /* 移动端点击反馈 */
+  .gift-card:active {
+    transform: scale(0.97);
+    transition: transform 0.15s;
   }
 
   .gift-card.selected {
@@ -192,15 +211,21 @@
     box-shadow: 0 8px 24px rgba(214, 51, 108, 0.35);
     transition: all 0.3s;
     font-family: inherit;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-appearance: none;
+    appearance: none;
   }
 
-  .submit-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 32px rgba(214, 51, 108, 0.5);
+  @media (hover: hover) {
+    .submit-btn:hover:not(:disabled) {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 32px rgba(214, 51, 108, 0.5);
+    }
   }
 
-  .submit-btn:active {
-    transform: translateY(0);
+  .submit-btn:active:not(:disabled) {
+    transform: scale(0.96);
   }
 
   .submit-btn:disabled {
@@ -305,10 +330,108 @@
     font-weight: 600;
   }
 
+  /* ============ 移动端适配 ============ */
+
+  /* 平板及以下 */
+  @media (max-width: 768px) {
+    body { padding: 24px 16px; }
+    .gifts-grid { gap: 16px; }
+  }
+
+  /* 手机端 (≤600px) */
   @media (max-width: 600px) {
-    .header h1 { font-size: 36px; }
-    .gifts-grid { grid-template-columns: 1fr; gap: 16px; }
-    .gift-icon { font-size: 56px; }
+    body {
+      padding: 20px 14px;
+      padding: max(20px, env(safe-area-inset-top)) 14px max(20px, env(safe-area-inset-bottom));
+    }
+
+    .header { margin-bottom: 28px; }
+    .header h1 {
+      font-size: 38px;
+      letter-spacing: 2px;
+      margin-bottom: 10px;
+    }
+    .header p {
+      font-size: 14px;
+      line-height: 1.7;
+      padding: 0 8px;
+    }
+    .header .emoji { font-size: 20px; }
+
+    .gifts-grid {
+      grid-template-columns: 1fr;
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+
+    .gift-card {
+      padding: 22px 18px;
+      border-radius: 20px;
+    }
+
+    .gift-icon {
+      font-size: 48px;
+      margin-bottom: 10px;
+    }
+    .gift-title { font-size: 19px; margin-bottom: 6px; }
+    .gift-desc { font-size: 13px; }
+
+    .gift-card .check-mark {
+      width: 24px;
+      height: 24px;
+      font-size: 13px;
+      top: 10px;
+      right: 10px;
+    }
+
+    .submit-btn {
+      padding: 15px 40px;
+      font-size: 17px;
+      width: 100%;
+      max-width: 320px;
+    }
+
+    .hint { font-size: 12px; margin-top: 14px; }
+
+    /* 弹窗手机端 */
+    .modal {
+      padding: 32px 24px;
+      width: 92%;
+      border-radius: 20px;
+    }
+    .modal-icon { font-size: 56px; }
+    .modal h2 { font-size: 24px; }
+    .modal p { font-size: 14px; }
+    .modal-btn {
+      padding: 13px 32px;
+      font-size: 15px;
+      width: 100%;
+      max-width: 280px;
+    }
+  }
+
+  /* 小屏手机 (≤375px，如 iPhone SE) */
+  @media (max-width: 375px) {
+    .header h1 { font-size: 32px; letter-spacing: 1px; }
+    .gift-card { padding: 18px 14px; }
+    .gift-icon { font-size: 42px; }
+    .gift-title { font-size: 17px; }
+    .gift-desc { font-size: 12px; }
+  }
+
+  /* 横屏适配（避免被键盘/地址栏挤压） */
+  @media (max-width: 900px) and (orientation: landscape) {
+    body { padding: 16px 20px; }
+    .header { margin-bottom: 20px; }
+    .header h1 { font-size: 32px; }
+    .gifts-grid {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+    .gift-card { padding: 16px 10px; }
+    .gift-icon { font-size: 38px; margin-bottom: 6px; }
+    .gift-title { font-size: 15px; }
+    .gift-desc { font-size: 11px; }
   }
 </style>
 </head>
@@ -318,7 +441,7 @@
   <div class="header">
     <h1>🎂 生日礼物心愿单 🎁</h1>
     <p>
-      尊贵的女王陛下 <span class="emoji">💕</span><br>
+      亲爱的小寿星 <span class="emoji">💕</span><br>
       18岁的你值得世界上最好的宠爱<br>
       挑一个你最心动的礼物吧 ✨
     </p>
@@ -435,7 +558,8 @@
     if (e.target === modal) modal.classList.remove('active');
   });
 
-  // 飘浮爱心背景
+  // 飘浮爱心背景（手机端降低密度避免卡顿）
+  const isMobile = window.matchMedia('(max-width: 600px)').matches;
   function createHeart() {
     const heart = document.createElement('div');
     heart.className = 'heart';
@@ -446,7 +570,7 @@
     document.body.appendChild(heart);
     setTimeout(() => heart.remove(), 12000);
   }
-  setInterval(createHeart, 600);
+  setInterval(createHeart, isMobile ? 1200 : 600);
 
   // 撒花动画
   function launchConfetti() {
