@@ -8,6 +8,8 @@
 <meta name="theme-color" content="#ffb3c6">
 <title>🎂 生日礼物心愿单 · For My Bestie</title>
 <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=ZCOOL+QingKe+HuangYou&family=Long+Cang&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<!-- html2canvas: 用于生成截图分享 -->
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
@@ -328,7 +330,229 @@
     cursor: pointer;
     font-family: inherit;
     font-weight: 600;
+    -webkit-appearance: none;
+    appearance: none;
   }
+
+  .modal-btn.secondary {
+    background: #fff;
+    color: #d6336c;
+    border: 2px solid #ff8fab;
+  }
+
+  .modal-btn-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+  }
+
+  /* 复制成功的小提示 */
+  .toast {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.85);
+    color: #fff;
+    padding: 14px 24px;
+    border-radius: 12px;
+    font-size: 14px;
+    z-index: 3000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    text-align: center;
+    line-height: 1.6;
+    max-width: 80%;
+  }
+
+  .toast.show {
+    opacity: 1;
+  }
+
+  /* 微信引导浮层 */
+  .share-guide {
+    background: linear-gradient(135deg, #fff5f7, #ffe5ec);
+    border-radius: 12px;
+    padding: 14px;
+    margin: 14px 0;
+    text-align: left;
+    font-size: 13px;
+    color: #a0185a;
+    line-height: 1.7;
+  }
+  .share-guide strong { color: #d6336c; }
+
+  /* 🎨 截图用的精美卡片（默认隐藏在屏幕外） */
+  #shareCard {
+    position: fixed;
+    top: -9999px;
+    left: 0;
+    width: 360px;
+    background: linear-gradient(135deg, #fff5f7 0%, #ffe5ec 50%, #fce4ec 100%);
+    padding: 36px 28px;
+    border-radius: 28px;
+    font-family: 'Noto Sans SC', sans-serif;
+    box-shadow: 0 20px 60px rgba(214, 51, 108, 0.2);
+    overflow: hidden;
+  }
+  #shareCard .sc-deco {
+    position: absolute;
+    font-size: 80px;
+    opacity: 0.12;
+    pointer-events: none;
+  }
+  #shareCard .sc-deco-1 { top: -10px; right: -10px; transform: rotate(15deg); }
+  #shareCard .sc-deco-2 { bottom: -20px; left: -10px; transform: rotate(-20deg); font-size: 100px; }
+  #shareCard .sc-header {
+    text-align: center;
+    margin-bottom: 24px;
+    position: relative;
+    z-index: 1;
+  }
+  #shareCard .sc-title {
+    font-family: 'ZCOOL KuaiLe', sans-serif;
+    font-size: 30px;
+    color: #d6336c;
+    letter-spacing: 2px;
+    margin-bottom: 6px;
+    text-shadow: 2px 2px 0 rgba(255, 255, 255, 0.8);
+  }
+  #shareCard .sc-subtitle {
+    font-size: 13px;
+    color: #a0185a;
+    letter-spacing: 1px;
+  }
+  #shareCard .sc-divider {
+    text-align: center;
+    color: #ff8fab;
+    font-size: 14px;
+    margin: 14px 0;
+    letter-spacing: 4px;
+  }
+  #shareCard .sc-gift {
+    background: rgba(255, 255, 255, 0.7);
+    border: 2px dashed #ff8fab;
+    border-radius: 20px;
+    padding: 24px 16px;
+    text-align: center;
+    margin: 16px 0;
+    position: relative;
+    z-index: 1;
+  }
+  #shareCard .sc-gift-icon {
+    font-size: 64px;
+    margin-bottom: 10px;
+    line-height: 1;
+  }
+  #shareCard .sc-gift-name {
+    font-family: 'ZCOOL QingKe HuangYou', sans-serif;
+    font-size: 26px;
+    color: #d6336c;
+    letter-spacing: 2px;
+  }
+  #shareCard .sc-message {
+    text-align: center;
+    font-family: 'Long Cang', cursive;
+    font-size: 22px;
+    color: #c2185b;
+    line-height: 1.6;
+    margin-top: 18px;
+    padding: 0 10px;
+    position: relative;
+    z-index: 1;
+  }
+  #shareCard .sc-footer {
+    text-align: center;
+    font-size: 11px;
+    color: #b97296;
+    margin-top: 20px;
+    letter-spacing: 1px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* 📷 截图预览浮层 */
+  .image-preview {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.92);
+    z-index: 5000;
+    padding: 20px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .image-preview.active { display: flex; flex-direction: column; align-items: center; }
+  .image-preview .preview-tip {
+    color: #fff;
+    font-size: 14px;
+    text-align: center;
+    margin-bottom: 16px;
+    line-height: 1.7;
+    background: rgba(255, 255, 255, 0.12);
+    padding: 12px 20px;
+    border-radius: 12px;
+    max-width: 360px;
+  }
+  .image-preview .preview-tip strong { color: #ffb3c6; }
+  .image-preview img {
+    max-width: 100%;
+    max-width: min(100%, 360px);
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    margin-bottom: 16px;
+  }
+  .image-preview .preview-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding-bottom: 20px;
+  }
+  .image-preview .preview-btn {
+    background: linear-gradient(135deg, #ff8fab, #d6336c);
+    color: #fff;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 50px;
+    font-size: 14px;
+    font-family: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    -webkit-appearance: none;
+  }
+  .image-preview .preview-btn.ghost {
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    border: 1.5px solid rgba(255, 255, 255, 0.4);
+  }
+
+  /* 加载中遮罩 */
+  .loading-mask {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 4500;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 15px;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .loading-mask.active { display: flex; }
+  .loading-mask .spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #ffb3c6;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
   /* ============ 移动端适配 ============ */
 
@@ -473,7 +697,7 @@
   <div class="header">
     <h1>🎂 生日礼物心愿单 🎁</h1>
     <p>
-      尊贵的公主殿下 <span class="emoji">💕</span><br>
+      尊贵的公主殿下 <span class="emoji">👸</span><br>
       18岁的你值得世界上最好的宠爱<br>
       挑一个你最心动的礼物吧 ✨
     </p>
@@ -520,10 +744,60 @@
   <div class="modal">
     <div class="modal-icon">🎉</div>
     <h2>收到啦！</h2>
-    <p>谢谢你告诉我你的心愿<br>我会用心准备好礼物 💝</p>
+    <p>谢谢你告诉我你的心愿<br>把结果发给我，让我去准备 💝</p>
     <div class="selected-list" id="selectedList"></div>
-    <button class="modal-btn" id="closeModal">好哒，期待生日 🎂</button>
+
+    <div class="share-guide">
+      📲 <strong>怎么发给我？</strong><br>
+      • <strong>方式一</strong>：点「📷 生成图片」→ 长按图片发给我（推荐 ⭐）<br>
+      • <strong>方式二</strong>：点「📤 复制结果」→ 微信粘贴发送
+    </div>
+
+    <div class="modal-btn-group">
+      <button class="modal-btn" id="snapBtn">📷 生成图片分享给 Ivy</button>
+      <button class="modal-btn secondary" id="shareBtn">📤 复制文字</button>
+      <button class="modal-btn secondary" id="closeModal">先关闭</button>
+    </div>
   </div>
+</div>
+
+<!-- 提示 toast -->
+<div class="toast" id="toast"></div>
+
+<!-- 🎨 用于生成截图的精美卡片（隐藏在屏幕外） -->
+<div id="shareCard">
+  <div class="sc-deco sc-deco-1">🎂</div>
+  <div class="sc-deco sc-deco-2">🎁</div>
+  <div class="sc-header">
+    <div class="sc-title">🎂 18岁生日心愿单</div>
+    <div class="sc-subtitle">FOR MY BESTIE · WITH LOVE 💕</div>
+  </div>
+  <div class="sc-divider">· ✦ · ✦ · ✦ ·</div>
+  <div class="sc-gift" id="scGift">
+    <div class="sc-gift-icon">💆‍♀️</div>
+    <div class="sc-gift-name">头发护理</div>
+  </div>
+  <div class="sc-message">谢谢你这么用心 ❀<br>这就是我最想要的啦 ~</div>
+  <div class="sc-footer">— 你的公主殿下 · <span id="scDate"></span> —</div>
+</div>
+
+<!-- 📷 截图预览浮层 -->
+<div class="image-preview" id="imagePreview">
+  <div class="preview-tip">
+    💡 <strong>长按图片</strong> → 选「保存图片」或「发送给朋友」<br>
+    保存后在微信对话框 <strong>+ → 相册</strong> 发给 Ivy 💕
+  </div>
+  <img id="previewImg" alt="心愿截图">
+  <div class="preview-actions">
+    <button class="preview-btn" id="downloadBtn">💾 保存图片</button>
+    <button class="preview-btn ghost" id="closePreview">关闭</button>
+  </div>
+</div>
+
+<!-- 加载中 -->
+<div class="loading-mask" id="loadingMask">
+  <div class="spinner"></div>
+  <div>正在生成图片…</div>
 </div>
 
 <script>
@@ -588,6 +862,175 @@
 
   modal.addEventListener('click', (e) => {
     if (e.target === modal) modal.classList.remove('active');
+  });
+
+  // 📤 分享 / 复制结果
+  const shareBtn = document.getElementById('shareBtn');
+  const toast = document.getElementById('toast');
+
+  function showToast(msg, duration = 2500) {
+    toast.innerHTML = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), duration);
+  }
+
+  function getShareText() {
+    const selected = document.querySelectorAll('.gift-card.selected');
+    const items = Array.from(selected).map(card => {
+      const g = giftMap[card.dataset.id];
+      return `${g.icon} ${g.name}`;
+    }).join('、');
+    return `🎂 我的18岁生日心愿~\n我选了：${items}\n谢谢你这么用心 💕`;
+  }
+
+  // 复制到剪贴板（兼容微信内置浏览器 / iOS Safari）
+  function copyText(text) {
+    return new Promise((resolve, reject) => {
+      // 优先使用现代 API
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(resolve).catch(() => {
+          fallbackCopy(text) ? resolve() : reject();
+        });
+      } else {
+        fallbackCopy(text) ? resolve() : reject();
+      }
+    });
+  }
+
+  function fallbackCopy(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.top = '-9999px';
+    ta.setAttribute('readonly', '');
+    document.body.appendChild(ta);
+    ta.select();
+    ta.setSelectionRange(0, text.length);
+    let ok = false;
+    try { ok = document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta);
+    return ok;
+  }
+
+  shareBtn.addEventListener('click', async () => {
+    const text = getShareText();
+
+    // 优先使用系统原生分享（手机上会唤起分享面板，可选微信）
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: '🎂 我的18岁生日心愿', text });
+        return;
+      } catch (e) {
+        // 用户取消分享，继续走复制流程
+      }
+    }
+
+    // 降级：复制到剪贴板
+    try {
+      await copyText(text);
+      showToast('✅ 已复制！<br>请打开微信粘贴发送给 Ivy 💕', 3000);
+    } catch (e) {
+      showToast('❌ 复制失败，请长按下方文字手动复制', 3000);
+      // 最终降级：显示文本让用户手动选中
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.cssText = 'position:fixed;top:30%;left:5%;width:90%;height:120px;z-index:4000;padding:10px;border-radius:10px;border:2px solid #ff8fab;font-size:14px;';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      setTimeout(() => ta.remove(), 8000);
+    }
+  });
+
+  // 📷 生成图片分享
+  const snapBtn = document.getElementById('snapBtn');
+  const shareCard = document.getElementById('shareCard');
+  const scGift = document.getElementById('scGift');
+  const scDate = document.getElementById('scDate');
+  const imagePreview = document.getElementById('imagePreview');
+  const previewImg = document.getElementById('previewImg');
+  const closePreview = document.getElementById('closePreview');
+  const downloadBtn = document.getElementById('downloadBtn');
+  const loadingMask = document.getElementById('loadingMask');
+
+  // 填充截图卡片内容
+  function fillShareCard() {
+    const selected = document.querySelectorAll('.gift-card.selected');
+    if (selected.length === 0) return;
+    const g = giftMap[selected[0].dataset.id];
+    scGift.innerHTML = `
+      <div class="sc-gift-icon">${g.icon}</div>
+      <div class="sc-gift-name">${g.name}</div>
+    `;
+    const d = new Date();
+    scDate.textContent = `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+  }
+
+  snapBtn.addEventListener('click', async () => {
+    if (typeof html2canvas === 'undefined') {
+      showToast('❌ 截图组件加载失败<br>请检查网络后重试', 3000);
+      return;
+    }
+
+    fillShareCard();
+    loadingMask.classList.add('active');
+
+    // 把卡片移到可见但不影响布局的位置（屏幕外但可被截图）
+    shareCard.style.top = '0';
+    shareCard.style.left = '-9999px';
+
+    try {
+      // 等一帧让浏览器渲染 emoji + 字体
+      await new Promise(r => setTimeout(r, 200));
+
+      const canvas = await html2canvas(shareCard, {
+        backgroundColor: null,
+        scale: 2,        // 高清 2 倍图
+        useCORS: true,
+        logging: false,
+        allowTaint: true
+      });
+
+      const dataUrl = canvas.toDataURL('image/png');
+      previewImg.src = dataUrl;
+      imagePreview.classList.add('active');
+    } catch (err) {
+      console.error(err);
+      showToast('❌ 生成失败，请重试 🥺', 2500);
+    } finally {
+      // 还原卡片位置
+      shareCard.style.top = '-9999px';
+      shareCard.style.left = '0';
+      loadingMask.classList.remove('active');
+    }
+  });
+
+  // 关闭预览
+  closePreview.addEventListener('click', () => {
+    imagePreview.classList.remove('active');
+  });
+
+  // 💾 保存图片到本地
+  downloadBtn.addEventListener('click', () => {
+    const url = previewImg.src;
+    if (!url) return;
+
+    // 微信内置浏览器：提示长按保存（download 属性不生效）
+    const ua = navigator.userAgent.toLowerCase();
+    const inWeChat = /micromessenger/.test(ua);
+
+    if (inWeChat) {
+      showToast('💡 微信里请<strong>长按图片</strong><br>选「保存图片」即可 ✨', 3500);
+      return;
+    }
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `生日心愿_${new Date().getTime()}.png`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    showToast('✅ 已保存到下载文件夹 💕', 2500);
   });
 
   // 飘浮爱心背景（手机端降低密度避免卡顿）
